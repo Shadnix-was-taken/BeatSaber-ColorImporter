@@ -1,9 +1,9 @@
 ﻿{
   "$schema": "https://raw.githubusercontent.com/nike4613/ModSaber-MetadataFileSchema/master/Schema.json",
-  "author": "",
+  "author": "Shadnix",
   "description": "",
-  "gameVersion": "0.12.2",
-  "id": null,
+  "gameVersion": "1.3.0",
+  "id": "ColorImporter",
   "name": "ColorImporter",
   "version": "0.0.1-alpha",
   "features": []
