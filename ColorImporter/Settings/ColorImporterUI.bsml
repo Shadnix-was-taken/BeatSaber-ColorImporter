@@ -1,0 +1,10 @@
+﻿<settings-container>
+  <horizontal pref-width='90'>
+    <text id='txt_usage' text='usage FIXME'></text>
+  </horizontal>
+  <dropdown-list-setting text='Target Color Scheme' value='ddl_schemeChoice' options='ddl_schemeList' apply-on-change='true'></dropdown-list-setting>
+  <button text='Import' on-click='import'></button>
+  <horizontal pref-width='90'>
+    <text id='txt_successInfo' text='successInfo FIXME'></text>
+  </horizontal>
+</settings-container>

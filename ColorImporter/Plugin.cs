@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Reflection;
+using BeatSaberMarkupLanguage.Settings;
+using ColorImporter.Settings;
 using IPA;
-using IPA.Config;
 using IPA.Loader;
 using IPA.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using IPALogger = IPA.Logging.Logger;
-using LogLevel = IPA.Logging.Logger.Level;
 
 namespace ColorImporter
 {
@@ -23,6 +23,7 @@ namespace ColorImporter
         public static Color defaultWall = new Color(1f, 0.1882353f, 0.1882353f, 1f);                // obstacle
 
         public static bool importDone = false;
+        public static Util.CustomColorParser ccp = null;
 
         public void Init(IPALogger logger, PluginLoader.PluginMetadata metadata)
         {
@@ -39,12 +40,12 @@ namespace ColorImporter
 
         public void OnApplicationStart()
         {
-            Logger.log.Debug("OnApplicationStart");
+
         }
 
         public void OnApplicationQuit()
         {
-            Logger.log.Debug("OnApplicationQuit");
+
         }
 
         public void OnFixedUpdate()
@@ -59,40 +60,16 @@ namespace ColorImporter
 
         public void OnActiveSceneChanged(Scene prevScene, Scene newScene)
         {
-            if (newScene.name == "MenuCore" && importDone == false)
+            if (newScene.name == "MenuCore")
             {
-                // Get reference to PlayerDataModelSO
-                PlayerDataModelSO[] playerData = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>();
-                if (playerData == null || playerData.Length == 0)
+                if (!importDone)
                 {
-                    Logger.Log("Unable to get a handle on PlayerDataModelSO");
-                    return;
+                    ccp = new Util.CustomColorParser();
+                    ccp.TryLoadCCConfig();
+                    importDone = true;
                 }
-                
-                // Get reference to ColorSchemesSettings in PlayerDataModelSO
-                ColorSchemesSettings colorSchemes = playerData[0].playerData.colorSchemesSettings;
-                /*
-                for (int i = 0; i < colorSchemes.GetNumberOfColorSchemes(); i++)
-                {
-                    ColorScheme colorScheme = colorSchemes.GetColorSchemeForIdx(i);
-                    Logger.Log("Color Scheme Idx: " + i + "; Color Scheme ID: " + colorScheme.colorSchemeId + "; Color Scheme Name: " + colorScheme.colorSchemeName);
-                }
-                */
-
-                Util.CustomColorParser ccp = new Util.CustomColorParser();
-
-                if (ccp.TryLoadCCConfig())
-                {
-                    // Save CustomColor settings to profile "Custom 3"
-                    ColorScheme csu3 = colorSchemes.GetColorSchemeForId("User3");
-                    csu3.SetPrivateField("_saberAColor", ccp.leftNoteColor);
-                    csu3.SetPrivateField("_saberBColor", ccp.rightNoteColor);
-                    csu3.SetPrivateField("_environmentColor0", ccp.leftLightColor);
-                    csu3.SetPrivateField("_environmentColor1", ccp.rightLightColor);
-                    csu3.SetPrivateField("_obstaclesColor", ccp.wallColor);
-                }
-
-                importDone = true;
+                BSMLSettings.instance.AddSettingsMenu("Color Importer", "ColorImporter.Settings.ColorImporterUI.bsml", ColorImporterUI.instance);
+                PersistentSingleton<ColorImporterUI>.instance.Initialize();
             }
         }
 
@@ -104,6 +81,69 @@ namespace ColorImporter
         public void OnSceneUnloaded(Scene scene)
         {
 
+        }
+
+        public static bool importColorScheme(string targetSchemeName)
+        {
+            string targetScheme = "";
+
+            // Get reference to PlayerDataModelSO
+            PlayerDataModelSO[] playerData = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>();
+            if (playerData == null || playerData.Length == 0)
+            {
+                Logger.Log("Unable to get a handle on PlayerDataModelSO");
+                return false;
+            }
+
+            // Get reference to ColorSchemesSettings in PlayerDataModelSO
+            ColorSchemesSettings colorSchemes = playerData[0].playerData.colorSchemesSettings;
+            if (colorSchemes == null)
+            {
+                Logger.Log("Unable to get a handle on playerData.colorSchemesSettings");
+                return false;
+            }
+
+            // Get SchemeID for selected Color Scheme Name
+            for (int i = 0; i < colorSchemes.GetNumberOfColorSchemes(); i++)
+            {
+                ColorScheme colorScheme = colorSchemes.GetColorSchemeForIdx(i);
+                if (colorScheme.colorSchemeName == targetSchemeName)
+                {
+                    targetScheme = colorScheme.colorSchemeId;
+                }
+            }
+            if (targetScheme == "")
+            {
+                Logger.Log("Unable to find targetScheme for targetSchemeName '" + targetSchemeName + "'");
+                return false;
+            }
+
+            // Get reference to selected target scheme
+            ColorScheme csu = colorSchemes.GetColorSchemeForId(targetScheme);
+            if (csu == null)
+            {
+                Logger.Log("Unable to get a handle on target ColorScheme '" + targetScheme + "'");
+                return false;
+            }
+
+            // Save CustomColor settings to selected profile
+            try
+            {
+                csu.SetPrivateField("_saberAColor", ccp.leftNoteColor);
+                csu.SetPrivateField("_saberBColor", ccp.rightNoteColor);
+                csu.SetPrivateField("_environmentColor0", ccp.leftLightColor);
+                csu.SetPrivateField("_environmentColor1", ccp.rightLightColor);
+                csu.SetPrivateField("_obstaclesColor", ccp.wallColor);
+            }
+            catch (Exception e)
+            {
+                Logger.Log("Setting data in user ColorScheme failed");
+                Logger.Log(e.ToString());
+                return false;
+            }
+
+            // Return true for successful import
+            return true;
         }
     }
 }
