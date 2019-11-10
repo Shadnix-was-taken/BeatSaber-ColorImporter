@@ -1,12 +1,16 @@
 # Beat Saber ColorImporter
 
-Migrates your old CustomColor settings to ColorScheme "Custom 3".
-
-**Warning:** Your Custom 3 settings will get overwritten without confirmation.
+Migrates your old CustomColor mod settings to a Beat Saber user color scheme of your choice.
 
 ## Installation
 
 Drop the DLL file into your plugins folder. 
+
+## Usage
+
+In the main menu, click on "Mod Settings", select "Color Importer", select the target color scheme of your choice and click on "Import".
+
+![Screenshot showing the settings menu](media/settings-menu.png)
 
 ## Removal
 
