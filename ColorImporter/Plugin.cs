@@ -60,7 +60,7 @@ namespace ColorImporter
 
         public void OnActiveSceneChanged(Scene prevScene, Scene newScene)
         {
-            if (newScene.name == "MenuCore")
+            if (newScene.name == "MenuViewControllers")
             {
                 if (!importDone)
                 {
