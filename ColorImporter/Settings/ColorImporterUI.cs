@@ -66,7 +66,7 @@ namespace ColorImporter.Settings
             }
             else
             {
-                txt_usage.text = "<color=\"red\">Failed to load CustomColors.ini - Unable to import settings.</color>";
+                txt_usage.text = "<color=#fb484e>Failed to load CustomColors.ini - Unable to import settings.</color>";
             }
             txt_successInfo.text = " ";
         }
