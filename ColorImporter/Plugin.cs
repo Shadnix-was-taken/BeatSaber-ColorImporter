@@ -11,10 +11,11 @@ using IPALogger = IPA.Logging.Logger;
 
 namespace ColorImporter
 {
-    public class Plugin : IBeatSaberPlugin
+    [Plugin(RuntimeOptions.SingleStartInit)]
+    public class Plugin
     {
         public static string PluginName => "ColorImporter";
-        public static string PluginVersion { get; private set; } = "0"; // Default. Actual version is retrieved from the manifest
+        public static string PluginVersion { get; private set; } = "0";                             // Default. Actual version is retrieved from the manifest
 
         public static Color defaultRedNote = new Color(0.6588235f, 0.1254902f, 0.1254902f, 1f);     // saberA
         public static Color defaultBlueNote = new Color(0.1254902f, 0.3921569f, 0.6588235f, 1f);    // saberB
@@ -25,7 +26,7 @@ namespace ColorImporter
         public static bool importDone = false;
         public static Util.CustomColorParser ccp = null;
 
-        public void Init(IPALogger logger, PluginLoader.PluginMetadata metadata)
+        public void Init(IPALogger logger, PluginMetadata metadata)
         {
             if (logger != null)
             {
@@ -38,25 +39,11 @@ namespace ColorImporter
             }
         }
 
-        public void OnApplicationStart()
-        {
+        [OnEnable]
+        public void OnEnable() => Load();
 
-        }
-
-        public void OnApplicationQuit()
-        {
-
-        }
-
-        public void OnFixedUpdate()
-        {
-
-        }
-
-        public void OnUpdate()
-        {
-
-        }
+        [OnDisable]
+        public void OnDisable() => Unload();
 
         public void OnActiveSceneChanged(Scene prevScene, Scene newScene)
         {
@@ -68,19 +55,32 @@ namespace ColorImporter
                     ccp.TryLoadCCConfig();
                     importDone = true;
                 }
-                BSMLSettings.instance.AddSettingsMenu("Color Importer", "ColorImporter.Settings.ColorImporterUI.bsml", ColorImporterUI.instance);
-                PersistentSingleton<ColorImporterUI>.instance.Initialize();
+                if (prevScene.name == "EmptyTransition")
+                {
+                    BSMLSettings.instance.AddSettingsMenu("Color Importer", "ColorImporter.Settings.ColorImporterUI.bsml", ColorImporterUI.instance);
+                }
             }
         }
 
-        public void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
+        private void Load()
         {
-
+            AddEvents();
         }
 
-        public void OnSceneUnloaded(Scene scene)
+        private void Unload()
         {
+            RemoveEvents();
+        }
 
+        private void AddEvents()
+        {
+            RemoveEvents();
+            SceneManager.activeSceneChanged += OnActiveSceneChanged;
+        }
+
+        private void RemoveEvents()
+        {
+            SceneManager.activeSceneChanged -= OnActiveSceneChanged;
         }
 
         public static bool importColorScheme(string targetSchemeName)
@@ -88,10 +88,10 @@ namespace ColorImporter
             string targetScheme = "";
 
             // Get reference to PlayerDataModelSO
-            PlayerDataModelSO[] playerData = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>();
+            PlayerDataModel[] playerData = Resources.FindObjectsOfTypeAll<PlayerDataModel>();
             if (playerData == null || playerData.Length == 0)
             {
-                Logger.Log("Unable to get a handle on PlayerDataModelSO");
+                Logger.Log("Unable to get a handle on PlayerDataModel");
                 return false;
             }
 
@@ -129,11 +129,11 @@ namespace ColorImporter
             // Save CustomColor settings to selected profile
             try
             {
-                csu.SetPrivateField("_saberAColor", ccp.leftNoteColor);
-                csu.SetPrivateField("_saberBColor", ccp.rightNoteColor);
-                csu.SetPrivateField("_environmentColor0", ccp.leftLightColor);
-                csu.SetPrivateField("_environmentColor1", ccp.rightLightColor);
-                csu.SetPrivateField("_obstaclesColor", ccp.wallColor);
+                csu.SetField("_saberAColor", ccp.leftNoteColor);
+                csu.SetField("_saberBColor", ccp.rightNoteColor);
+                csu.SetField("_environmentColor0", ccp.leftLightColor);
+                csu.SetField("_environmentColor1", ccp.rightLightColor);
+                csu.SetField("_obstaclesColor", ccp.wallColor);
             }
             catch (Exception e)
             {

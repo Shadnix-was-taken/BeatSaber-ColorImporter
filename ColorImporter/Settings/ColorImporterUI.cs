@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
-using BeatSaberMarkupLanguage.Attributes;
+﻿using BeatSaberMarkupLanguage.Attributes;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
+using UnityEngine;
 
 namespace ColorImporter.Settings
 {
@@ -57,9 +59,15 @@ namespace ColorImporter.Settings
         }
 
 
-        // Initialize text based on the load result of CustomColors.ini
-        public void Initialize()
+        public void Awake()
         {
+            StartCoroutine(Initialize());
+        }
+
+        // Initialize text based on the load result of CustomColors.ini
+        private IEnumerator Initialize()
+        {
+            yield return new WaitForSeconds(2);
             if (Plugin.ccp.loadSuccessful)
             {
                 txt_usage.text = "CustomColors.ini sucessfully loaded. Please choose the target color scheme and click \"Import\" to import the settings.\n<color=\"red\">Note: Existing settings will be overwritten.</color>";
